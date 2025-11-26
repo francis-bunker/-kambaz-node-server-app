@@ -16,7 +16,7 @@ export default function WorkingWithObjects(app) {
         const { newTitle } = req.params;
         assignment.title = newTitle;
         res.json(assignment);
-    };
+    }; 
     const getModule = (req, res) => {
         res.json(module);
     }

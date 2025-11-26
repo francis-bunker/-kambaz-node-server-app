@@ -21,7 +21,7 @@ export default [
   },
   {
     "_id": "RS103",
-    "name": "Spacecraft Design",
+    "name": "Spacecraft Design !!",
     "number": "RS4570",
     "startDate": "2023-01-10",
     "endDate": "2023-05-15",
