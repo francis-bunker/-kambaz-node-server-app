@@ -1,11 +1,17 @@
 import UsersDao from "./dao.js";
-let currentUser = null;
+import CoursesDao from "../Courses/dao.js";      
+import EnrollmentsDao from "../Enrollments/dao.js";
+
 export default function UserRoutes(app) {
     const dao = UsersDao();
+    const courseDao = CoursesDao();
+    const enrollmentsDao = EnrollmentsDao();
+
     const deleteUser = async (req, res) => {
         const status = await dao.deleteUser(req.params.userId);
         res.json(status);
     };
+
     const updateUser = async (req, res) => {
         const userId = req.params.userId;
         const userUpdates = req.body;
@@ -16,17 +22,18 @@ export default function UserRoutes(app) {
         }
         res.json(currentUser);
     };
+
     const signup = async (req, res) => {
         const user = await dao.findUserByUsername(req.body.username);
         if (user) {
-            res.status(400).json(
-                { message: "Username already in use" });
+            res.status(400).json({ message: "Username already in use" });
             return;
         }
         const currentUser = await dao.createUser(req.body);
         req.session["currentUser"] = currentUser;
         res.json(currentUser);
     };
+
     const signin = async (req, res) => {
         const { username, password } = req.body;
         const currentUser = await dao.findUserByCredentials(username, password);
@@ -37,6 +44,7 @@ export default function UserRoutes(app) {
             res.status(401).json({ message: "Unable to login. Try again later." });
         }
     };
+
     const profile = async (req, res) => {
         const currentUser = req.session["currentUser"];
         if (!currentUser) {
@@ -45,10 +53,12 @@ export default function UserRoutes(app) {
         }
         res.json(currentUser);
     };
+
     const signout = (req, res) => {
         req.session.destroy();
         res.sendStatus(200);
     };
+
     const findAllUsers = async (req, res) => {
         const { role, name } = req.query;
         if (role) {
@@ -62,14 +72,40 @@ export default function UserRoutes(app) {
             return;
         }
     };
+
     const findUserById = async (req, res) => {
         const user = await dao.findUserById(req.params.userId);
         res.json(user);
     };
+
     const createUser = async (req, res) => {
         const user = await dao.createUser(req.body);
         res.json(user);
     };
+
+    const findCoursesForUser = async (req, res) => {
+        const currentUser = req.session["currentUser"];
+        if (!currentUser) {
+            res.sendStatus(401);
+            return;
+        }
+
+        if (currentUser.role === "ADMIN") {
+            const courses = await courseDao.findAllCourses();
+            res.json(courses);
+            return;
+        }
+
+        let { uid } = req.params;
+        if (uid === "current") {
+            uid = currentUser._id;
+        }
+
+        const courses = await enrollmentsDao.findCoursesForUser(uid);
+        res.json(courses);
+    };
+
+    app.get("/api/users/:uid/courses", findCoursesForUser);
     app.get("/api/users", findAllUsers);
     app.post("/api/users", createUser);
     app.get("/api/users/:userId", findUserById);
