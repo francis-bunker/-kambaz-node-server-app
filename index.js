@@ -12,6 +12,7 @@ const CONNECTION_STRING = process.env.DATABASE_CONNECTION_STRING || "mongodb://1
 mongoose.connect(CONNECTION_STRING);
 
 const app = express();
+const dev = process.env.SERVER_ENV === "development";
 
 app.use(
     cors({
@@ -21,33 +22,27 @@ app.use(
 );
 
 
-
 const sessionOptions = {
     secret: process.env.SESSION_SECRET || "kambaz",
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: false,  
-        sameSite: "lax",  
-    },
 };
 
 if (process.env.SERVER_ENV !== "development") {
-  sessionOptions.proxy = true;
-  sessionOptions.cookie = {
-    sameSite: "none",
-    secure: true,
-    domain: process.env.SERVER_URL,
-  };
+    sessionOptions.proxy = true;
+    sessionOptions.cookie = {
+        sameSite: "none",
+        secure: true,
+        domain: process.env.SERVER_URL,
+    };
 }
 
 
 app.use(session(sessionOptions));
 app.use(express.json());
-UserRoutes(app);
-CourseRoutes(app);
-Modules(app);
+UserRoutes(app, db);
+CourseRoutes(app, db);
+Modules(app, db);
 Lab5(app);
 const port = process.env.PORT || 4000;
 app.listen(port, () => {
