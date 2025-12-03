@@ -12,8 +12,16 @@ export default function ModulesDao(db) {
     function deleteModule(moduleId) {
         const { modules } = db;
         db.modules = modules.filter((module) => module._id !== moduleId);
+        return { status: "ok" };
+    }
+    function updateModule(moduleId, newModule) {
+        const { modules } = db;
+        db.modules = modules.map((module) =>
+            module._id === moduleId ? { ...module, ...newModule } : module
+        );
+        return { status: "ok" };
     }
     return {
-        findModulesForCourse, createModule, deleteModule,
+        findModulesForCourse, createModule, deleteModule, updateModule,
     };
 }
